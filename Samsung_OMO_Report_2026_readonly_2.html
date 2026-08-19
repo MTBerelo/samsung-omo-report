@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Samsung x OMO Report 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:      #ffffff;
+  --bg2:     #f5f5f5;
+  --bg3:     #efefef;
+  --text:    #1a1a1a;
+  --text2:   #555555;
+  --text3:   #999999;
+  --border:  rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --samsung: #1428A0;
+  --samsung2:#0A1E7A;
+  --sam-lt:  #E8EBFC;
+  --sam-btn: #B8C0F0;
+  --green:   #1D9E75;
+  --green-bg:#EAF3DE;
+  --green-t: #3B6D11;
+  --amber:   #BA7517;
+  --amber-bg:#FAEEDA;
+  --amber-t: #854F0B;
+  --red-bg:  #FCEBEB;
+  --red-t:   #A32D2D;
+  --gray:    #D3D1C7;
+  --radius:  8px;
+  --radius-lg:12px;
+  --font: -apple-system,'Segoe UI',sans-serif;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1c;--bg2:#252525;--bg3:#2e2e2e;
+    --text:#f0f0f0;--text2:#9a9a9a;--text3:#666;
+    --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.18);
+    --sam-lt:#0d1540;--green-bg:#0d2e1f;--amber-bg:#2e1f05;--red-bg:#2e0f0f;
+  }
+}
+body{font-family:var(--font);background:var(--bg3);color:var(--text);min-height:100vh;}
+.page{max-width:920px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+
+/* ── Header ── */
+.header{background:var(--samsung);border-radius:var(--radius-lg);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:1.75rem;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.samsung-logo{width:42px;height:42px;border-radius:var(--radius);background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.samsung-logo svg{width:26px;height:26px;}
+.header-title{font-size:17px;font-weight:700;color:#fff;line-height:1.25;}
+.header-sub{font-size:12px;color:var(--sam-btn);margin-top:3px;}
+.header-right{text-align:right;}
+.header-date{font-size:12px;color:var(--sam-btn);line-height:1.6;}
+.live-pill{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,0.15);color:#fff;margin-top:6px;}
+
+/* ── Toolbar ── */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem;}
+.btn{padding:7px 16px;border-radius:var(--radius);font-size:13px;font-family:var(--font);font-weight:500;border:1px solid var(--border2);background:var(--bg);color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s;}
+.btn:hover{background:var(--bg2);}
+.btn.primary{background:var(--samsung);color:#fff;border-color:var(--samsung);}
+.btn.primary:hover{background:var(--samsung2);}
+.edit-badge{font-size:11px;padding:4px 12px;border-radius:20px;font-weight:500;background:var(--amber-bg);color:var(--amber-t);border:1px solid var(--amber-t);display:none;}
+.unsaved{width:7px;height:7px;border-radius:50%;background:var(--amber);display:none;}
+.unsaved.on{display:inline-block;}
+
+/* ── Metrics ── */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1.75rem;}
+.metric{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;position:relative;border-bottom:3px solid var(--samsung);}
+.metric .mlabel{font-size:11px;color:var(--text2);margin-bottom:8px;min-height:28px;display:flex;align-items:flex-start;}
+.metric .mval{font-size:26px;font-weight:700;color:var(--text);line-height:1;}
+.metric .mval.green{color:var(--green-t);}
+.metric .mval.amber{color:var(--amber);}
+.metric .mval.samsung{color:var(--samsung);}
+.metric .msub{font-size:11px;color:var(--text3);margin-top:5px;min-height:16px;}
+.metric input.minput{font-size:22px;font-weight:700;color:var(--text);background:transparent;border:none;border-bottom:2px solid var(--samsung);width:100%;outline:none;padding:2px 0;display:none;}
+.metric.editing-field .mval{display:none;}
+.metric.editing-field .minput{display:block;}
+.edit-hint{position:absolute;top:10px;right:10px;font-size:10px;color:var(--text3);display:none;cursor:pointer;}
+.edit-mode .metric.editable .edit-hint{display:block;}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:2px;margin-bottom:1.5rem;border-bottom:2px solid var(--border);padding-bottom:0;}
+.tab{padding:8px 18px;font-size:13px;font-family:var(--font);font-weight:500;background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);cursor:pointer;margin-bottom:-2px;transition:color .15s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--samsung);border-bottom-color:var(--samsung);}
+.section{display:none;}
+.section.visible{display:block;}
+
+/* ── Cards / Charts ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem;}
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;}
+.card h3{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem;}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);}
+.legend-dot{width:10px;height:10px;border-radius:2px;}
+
+/* ── Retailer table ── */
+.rtable{width:100%;border-collapse:collapse;font-size:13px;}
+.rtable th{text-align:left;font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;padding:0 8px 10px;border-bottom:1px solid var(--border);}
+.rtable td{padding:9px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+.rtable tr:last-child td{border-bottom:none;}
+.rtable input{font-size:13px;font-family:var(--font);width:62px;padding:4px 7px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);text-align:right;}
+.edit-mode .rtable input{border-color:var(--samsung);background:var(--bg);}
+.mini-bar-bg{width:70px;height:5px;background:var(--bg3);border-radius:3px;display:inline-block;vertical-align:middle;}
+.mini-bar-fill{height:5px;border-radius:3px;background:var(--samsung);transition:width .3s;}
+.pill{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;display:inline-block;}
+.pill.high{background:var(--green-bg);color:var(--green-t);}
+.pill.mid{background:var(--amber-bg);color:var(--amber-t);}
+.pill.low{background:var(--red-bg);color:var(--red-t);}
+
+/* ── Campaign cards ── */
+.retailer-group{margin-bottom:22px;}
+.retailer-group-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.bundle-desc{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.bundle-pill{flex:1;min-width:140px;background:var(--sam-lt);border-radius:var(--radius);padding:10px 12px;}
+.bundle-pill .bn{font-size:10px;font-weight:700;color:var(--samsung);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.bundle-pill .bt{font-size:11px;color:var(--text2);line-height:1.4;}
+.campaign-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.campaign-card .cname{font-size:13px;font-weight:600;color:var(--text);min-width:72px;}
+.cstat{text-align:center;min-width:52px;}
+.cstat .cn{font-size:20px;font-weight:700;color:var(--text);line-height:1;}
+.cstat .cl{font-size:10px;color:var(--text2);margin-top:2px;}
+.cstat input{font-size:17px;font-weight:700;font-family:var(--font);width:56px;padding:3px 5px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);text-align:center;display:none;}
+.edit-mode .cstat input{border-color:var(--samsung);background:var(--bg);display:block;}
+.edit-mode .cstat .cn{display:none;}
+.progress-wrap{flex:1;min-width:130px;}
+.progress-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px;}
+.progress-track{background:var(--bg3);border-radius:6px;height:8px;}
+.progress-bar{height:8px;border-radius:6px;transition:width .3s,background .3s;}
+.note{font-size:12px;color:var(--text3);margin-top:12px;}
+
+/* ── Salespeople ── */
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:1.25rem;}
+.sp-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.sp-avatar{width:34px;height:34px;border-radius:50%;background:var(--sam-lt);color:var(--samsung);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sp-name{font-size:13px;font-weight:500;color:var(--text);}
+.sp-sales{font-size:11px;color:var(--text2);}
+
+footer{text-align:center;font-size:11.5px;color:var(--text3);margin-top:3rem;padding-top:1.25rem;border-top:1px solid var(--border);}
+@media(max-width:580px){.charts-grid{grid-template-columns:1fr;}.header{flex-direction:column;}.header-right{text-align:left;}}
+</style>
+</head>
+<body>
+<div class="page" id="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="samsung-logo">
+        <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="8" width="22" height="10" rx="2" fill="white" opacity="0.9"/>
+          <rect x="5" y="11" width="6" height="4" rx="1" fill="#1428A0"/>
+          <rect x="15" y="11" width="6" height="4" rx="1" fill="#1428A0"/>
+          <circle cx="13" cy="13" r="2" fill="#1428A0"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">Samsung × OMO — Washing Machine Promotion 2026</div>
+        <div class="header-sub">Campaign reporting dashboard</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-date">Last updated 19 August 2026</div>
+      <div style="font-size:11px;color:var(--sam-btn);margin-top:4px;line-height:1.6;">
+        📅 Live: 12 Jul – 30 Aug 2026<br>
+        🎟️ Coupons expire: 30 Sep 2026
+      </div>
+      <span class="live-pill">Campaign in progress</span>
+    </div>
+  </div>
+
+  
+
+  <!-- METRICS -->
+  <div class="metrics" id="metrics">
+    <div class="metric" data-key="totalReg">
+      <div class="mlabel">Total registrations</div>
+      <div class="mval" style="display:block" id="mv-totalReg">402</div>
+      
+      <div class="msub">All entries</div>
+      
+    </div>
+    <div class="metric" data-key="validReg">
+      <div class="mlabel">101 invalid/test removed</div>
+      <div class="mval green" style="display:block" id="mv-validReg">301</div>
+      
+      <div class="msub" id="ms-validReg">101 invalid/test removed</div>
+      
+    </div>
+    <div class="metric" data-key="issued">
+      <div class="mlabel">Coupons issued</div>
+      <div class="mval" style="display:block" id="mv-issued">301</div>
+      
+      <div class="msub">Across 3 retailers</div>
+      
+    </div>
+    <div class="metric" data-key="redeemed">
+      <div class="mlabel">Coupons redeemed</div>
+      <div class="mval" style="display:block" id="mv-redeemed">208</div>
+      
+      <div class="msub" id="ms-redeemed">Of 301 issued</div>
+      
+    </div>
+    <div class="metric" data-key="activeRetailers">
+      <div class="mlabel">Active retailers</div>
+      <div class="mval" style="display:block" id="mv-activeRetailers">8</div>
+      
+      <div class="msub">Selling locations</div>
+      
+    </div>
+    <div class="metric">
+      <div class="mlabel">Redemption rate</div>
+      <div class="mval amber" style="display:block" id="mv-rate">69%</div>
+      <div class="msub">Auto-calculated</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overview',this)">Overview</button>
+    <button class="tab" onclick="showTab('retailers',this)">Retailers</button>
+    <button class="tab" onclick="showTab('campaigns',this)">Coupon campaigns</button>
+  </div>
+
+  <!-- OVERVIEW TAB -->
+  <div id="tab-overview" class="section visible">
+    <div class="charts-grid">
+      <div class="card">
+        <h3>Registrations by retailer</h3>
+        <div style="position:relative;height:240px"><canvas id="retailerChart" role="img" aria-label="Registrations by retailer: Makro 12, Hirsch's 11, Takealot 2, Samsung Online 2, Tafelberg 1, Other 1"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Registration breakdown</h3>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Valid (301)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--gray)"></div>Invalid (101)</div>
+        </div>
+        <div style="position:relative;height:210px"><canvas id="donutChart" role="img" aria-label="12 valid registrations, 17 invalid"></canvas></div>
+      </div>
+    </div>
+    <div class="charts-grid" style="grid-template-columns:1fr;">
+      <div class="card">
+        <h3>Machine models — units purchased per model</h3>
+        <div style="position:relative;height:380px"><canvas id="modelChart" role="img" aria-label="Machine models: WW11CGP44 15 units, WW90DG6U94 6 units, Other 8 units"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Coupons issued by preferred retailer</h3>
+        <div style="position:relative;height:200px"><canvas id="couponChart" role="img" aria-label="Coupons issued: Pick n Pay 8, Takealot 4"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RETAILERS TAB -->
+  <div id="tab-retailers" class="section">
+    <div class="card" style="margin-bottom:14px">
+      <h3>Retailer registrations</h3>
+      <table class="rtable">
+        <thead><tr><th>Retailer</th><th>Registrations</th><th>Share</th><th>Volume</th></tr></thead>
+        <tbody id="retailer-tbody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Top salespeople</h3>
+      <div class="sp-grid">
+        <div class="sp-card"><div class="sp-avatar">TH</div><div><div class="sp-name">Thabo (Makro/Game)</div><div class="sp-sales">6 sales</div></div></div>
+        <div class="sp-card"><div class="sp-avatar">LY</div><div><div class="sp-name">Lydia (Makro)</div><div class="sp-sales">5 sales</div></div></div>
+        <div class="sp-card"><div class="sp-avatar">BN</div><div><div class="sp-name">Bongani (Makro)</div><div class="sp-sales">3 sales</div></div></div>
+        <div class="sp-card"><div class="sp-avatar">JL</div><div><div class="sp-name">Juliet (Hirsch's)</div><div class="sp-sales">3 sales</div></div></div>
+        <div class="sp-card"><div class="sp-avatar">VM</div><div><div class="sp-name">Vongani (Game)</div><div class="sp-sales">3 sales</div></div></div>
+        <div class="sp-card"><div class="sp-avatar">NN</div><div><div class="sp-name">Nkateko (Makro)</div><div class="sp-sales">3 sales</div></div></div>
+        <div class="sp-card"><div class="sp-avatar">LI</div><div><div class="sp-name">Logan (Game)</div><div class="sp-sales">3 sales</div></div></div>
+        <div class="sp-card"><div class="sp-avatar">SZ</div><div><div class="sp-name">Siseko (Makro)</div><div class="sp-sales">3 sales</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPAIGNS TAB -->
+  <div id="tab-campaigns" class="section">
+
+    <!-- Bundle legend -->
+    <div class="bundle-desc">
+      <div class="bundle-pill"><div class="bn">Bundle 1</div><div class="bt">2× 2L OMO Auto Washing Liquid + 1× 20pk OMO Power Capsules</div></div>
+      <div class="bundle-pill"><div class="bn">Bundle 2</div><div class="bt">5× 2L OMO Auto Washing Liquid + 1× 20pk OMO Power Capsules</div></div>
+      <div class="bundle-pill"><div class="bn">Bundle 3</div><div class="bt">8× 2L OMO Auto Washing Liquid + 1× 20pk OMO Power Capsules</div></div>
+    </div>
+
+    <!-- Pick n Pay -->
+    <div class="retailer-group">
+      <div class="retailer-group-label">Pick n Pay</div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 1</div>
+        <div class="cstat"><div class="cn" id="cn-pnp-b1-i">20</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-pnp-b1-r">15</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-pnp-b1">75%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-pnp-b1" style="width:75%;background:#1D9E75"></div></div></div>
+        <span class="pill high" id="cpill-pnp-b1">High</span>
+      </div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 2</div>
+        <div class="cstat"><div class="cn" id="cn-pnp-b2-i">62</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-pnp-b2-r">52</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-pnp-b2">84%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-pnp-b2" style="width:52%;background:#BA7517"></div></div></div>
+        <span class="pill high" id="cpill-pnp-b2">High</span>
+      </div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 3</div>
+        <div class="cstat"><div class="cn" id="cn-pnp-b3-i">6</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-pnp-b3-r">5</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-pnp-b3">83%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-pnp-b3" style="width:29%;background:#BA7517"></div></div></div>
+        <span class="pill high" id="cpill-pnp-b3">High</span>
+      </div>
+    </div>
+
+    <!-- Checkers -->
+    <div class="retailer-group">
+      <div class="retailer-group-label">Checkers / Shoprite</div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 1</div>
+        <div class="cstat"><div class="cn" id="cn-chk-b1-i">60</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-chk-b1-r">27</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-chk-b1">45%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-chk-b1" style="width:49%;background:#BA7517"></div></div></div>
+        <span class="pill mid" id="cpill-chk-b1">Mid</span>
+      </div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 2</div>
+        <div class="cstat"><div class="cn" id="cn-chk-b2-i">113</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-chk-b2-r">77</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-chk-b2">68%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-chk-b2" style="width:16%;background:#BA7517"></div></div></div>
+        <span class="pill mid" id="cpill-chk-b2">Mid</span>
+      </div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 3</div>
+        <div class="cstat"><div class="cn" id="cn-chk-b3-i">11</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-chk-b3-r">7</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-chk-b3">64%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-chk-b3" style="width:64%;background:#1D9E75"></div></div></div>
+        <span class="pill mid" id="cpill-chk-b3">Mid</span>
+      </div>
+    </div>
+
+    <!-- Takealot -->
+    <div class="retailer-group">
+      <div class="retailer-group-label">Takealot</div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 1</div>
+        <div class="cstat"><div class="cn" id="cn-tkl-b1-i">7</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-tkl-b1-r">6</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-tkl-b1">86%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-tkl-b1" style="width:86%;background:#1D9E75"></div></div></div>
+        <span class="pill high" id="cpill-tkl-b1">High</span>
+      </div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 2</div>
+        <div class="cstat"><div class="cn" id="cn-tkl-b2-i">21</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-tkl-b2-r">18</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-tkl-b2">86%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-tkl-b2" style="width:33%;background:#BA7517"></div></div></div>
+        <span class="pill high" id="cpill-tkl-b2">High</span>
+      </div>
+      <div class="campaign-card">
+        <div class="cname">Bundle 3</div>
+        <div class="cstat"><div class="cn" id="cn-tkl-b3-i">1</div><div class="cl">issued</div></div>
+        <div class="cstat"><div class="cn" id="cn-tkl-b3-r">1</div><div class="cl">redeemed</div></div>
+        <div class="progress-wrap"><div class="progress-labels"><span>Rate</span><span id="cp-tkl-b3">100%</span></div><div class="progress-track"><div class="progress-bar" id="cpb-tkl-b3" style="width:100%;background:#1D9E75"></div></div></div>
+        <span class="pill high" id="cpill-tkl-b3">High</span>
+      </div>
+    </div>
+
+    <p class="note">ℹ️ Campaign live 12 July – 30 August 2026 &nbsp;·&nbsp; Coupons expire 30 September 2026 &nbsp;·&nbsp; Upload retailer reports to populate redemption data.</p>
+  </div>
+
+  <footer>Samsung × OMO Washing Machine Promotion &nbsp;·&nbsp; Reporting period 2026 &nbsp;·&nbsp; Confidential</footer>
+</div>
+
+<script>
+const retailers = [
+  { name: 'Makro',          reg: 153 },
+  { name: "Hirsch's",       reg: 114 },
+  { name: 'Game',           reg: 38  },
+  { name: 'Tafelberg',      reg: 11  },
+  { name: 'Kloppers',       reg: 8   },
+  { name: 'Takealot',       reg: 6   },
+  { name: 'Other',          reg: 48  },
+];
+
+const SAM = '#1428A0', SAM2 = '#0A1E7A', SAMLT = '#B8C0F0';
+
+function buildRetailerTable() {
+  const tbody = document.getElementById('retailer-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  const total = retailers.reduce((s,r) => s+r.reg, 0) || 1;
+  const max   = Math.max(...retailers.map(r => r.reg)) || 1;
+  retailers.forEach((r, i) => {
+    const pct = (r.reg / total * 100).toFixed(1);
+    const cls = parseFloat(pct) > 30 ? 'high' : parseFloat(pct) > 10 ? 'mid' : 'low';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.reg}</td>
+      <td><span class="pill ${cls}">${pct}%</span></td>
+      <td><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${Math.round(r.reg/max*100)}%"></div></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('visible');
+  btn.classList.add('active');
+}
+
+new Chart(document.getElementById('retailerChart'), {
+  type: 'bar',
+  data: {
+    labels: retailers.map(r => r.name),
+    datasets: [{ label: 'Registrations', data: retailers.map(r => r.reg),
+      backgroundColor: SAM, borderRadius: 4 }]
+  },
+  options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { beginAtZero: true, ticks: { stepSize: 2 } }, y: { ticks: { font: { size: 11 } } } } }
+});
+
+const dChart = new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: { labels: ['Valid', 'Invalid'],
+    datasets: [{ data: [301, 101], backgroundColor: ['#1D9E75', '#D3D1C7'], borderWidth: 0 }] },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } } } }
+});
+
+new Chart(document.getElementById('modelChart'), {
+  type: 'bar',
+  data: {
+    labels: [
+      'WW11CGP44DSBFA  ·  Front Loader  ·  11kg  ·  Bundle 2',
+      'WW90DG5U34ABFA  ·  Front Loader  ·  9kg  ·  Bundle 1',
+      'WW11CGC04DABFA  ·  Front Loader  ·  11kg  ·  Bundle 1',
+      'WW90DG6U94LBFA  ·  Front Loader  ·  9kg  ·  Bundle 2',
+      'WF90F20ADSFA  ·  Front Loader  ·  20kg  ·  Bundle 3',
+      'WW12BB944DGBFA  ·  Front Loader  ·  12kg  ·  Bundle 2',
+      'WD90HG5U34BBFA  ·  Combo  ·  9/6kg  ·  Bundle 2',
+      'WD90HG6U94BBFA  ·  Combo  ·  9/6kg  ·  Bundle 2',
+      'WD12BB944DGBFA  ·  Combo  ·  12/8kg  ·  Bundle 2',
+      'WD18DB8995BZFA  ·  Combo  ·  18/11kg  ·  Bundle 3'
+    ],
+    datasets: [{ label: 'Units purchased', data: [116,63,54,36,27,24,22,17,14,5],
+      backgroundColor: ['#1428A0','#2D4FD0','#4470E0','#5B8AEF','#7AA4F8','#99BFFF','#B8D4FF','#D4E8FF','#EAF2FF'],
+      borderRadius: 4 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + ' units' } } },
+    scales: {
+      x: { beginAtZero: true, ticks: { stepSize: 5 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+      y: { ticks: { font: { size: 9.5 } } }
+    }
+  }
+});
+
+new Chart(document.getElementById('couponChart'), {
+  type: 'bar',
+  data: { labels: ['Pick n Pay', 'Takealot', 'Checkers'],
+    datasets: [{ label: 'Issued', data: [88, 29, 184], backgroundColor: [SAM, SAMLT, SAM2], borderRadius: 4 }] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 2 } } } }
+});
+
+function updateRetailerChart() {
+  rChart.data.labels = retailers.map(r => r.name);
+  rChart.data.datasets[0].data = retailers.map(r => r.reg);
+  rChart.update();
+}
+
+function updateDonut() {
+  const total  = parseInt(document.getElementById('mi-totalReg').value) || 0;
+  const valid  = parseInt(document.getElementById('mi-validReg').value)  || 0;
+  dChart.data.datasets[0].data = [valid, Math.max(0, total - valid)];
+  dChart.update();
+}
+
+// ── Metric inputs ─────────────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('visible');
+  btn.classList.add('active');
+}
+
+buildRetailerTable();
+</script>
+
+buildRetailerTable();
+</script>
+</body>
+</html>
