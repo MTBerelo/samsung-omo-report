@@ -4,13 +4,13 @@ Interactive campaign reporting dashboard for the Samsung × OMO washing machine
 promotion (campaign live **12 July – 30 August 2026**; coupons expire
 **30 September 2026**).
 
-The report is a single self-contained `index.html` file — all styling, charts
+The report is a single self-contained `Samsung_OMO_Report_2026_readonly_2.html` file — all styling, charts
 (Chart.js via CDN) and interactivity are inline, so it runs in any modern
 browser with no build step.
 
 ## View it
 
-- **Locally:** open `index.html` in a browser.
+- **Locally:** open `Samsung_OMO_Report_2026_readonly_2.html` in a browser.
 - **Hosted (GitHub Pages):** once Pages is enabled (see below), the report is
   served at the repository's Pages URL.
 
@@ -26,7 +26,7 @@ browser with no build step.
 
 There's an in-page **Edit data** mode for updating the numbers and seeing the
 charts recalculate live. Edits are session-only and are not persisted — commit
-an updated `index.html` to save changes.
+an updated `Samsung_OMO_Report_2026_readonly_2.html` to save changes.
 
 ## Enable GitHub Pages
 
